@@ -6,6 +6,7 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.exceptions import TelegramUnauthorizedError
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 from aiogram.types.error_event import ErrorEvent
@@ -69,22 +70,24 @@ async def main() -> None:
     dispatcher.include_router(user_router)
     dispatcher.errors.register(on_error)
 
-    me = await bot.get_me()
-    dispatcher["bot_username"] = me.username
-    logger.info("Starting bot @%s", me.username)
-
-    await set_commands(bot)
-    scheduler = create_scheduler(bot, session_factory, settings)
-    scheduler.start()
-
+    scheduler = None
     try:
+        me = await bot.get_me()
+        dispatcher["bot_username"] = me.username
+        logger.info("Starting bot @%s", me.username)
+
+        await set_commands(bot)
+        scheduler = create_scheduler(bot, session_factory, settings)
+        scheduler.start()
+
         await bot.delete_webhook(drop_pending_updates=True)
         await dispatcher.start_polling(
             bot,
             allowed_updates=dispatcher.resolve_used_update_types(),
         )
     finally:
-        scheduler.shutdown(wait=False)
+        if scheduler is not None and scheduler.running:
+            scheduler.shutdown(wait=False)
         await bot.session.close()
         await engine.dispose()
 
@@ -92,5 +95,8 @@ async def main() -> None:
 if __name__ == "__main__":
     try:
         asyncio.run(main())
+    except TelegramUnauthorizedError:
+        logging.getLogger(__name__).error("BOT_TOKEN неверный или отозван. Проверь токен в .env.")
+        raise SystemExit(1) from None
     except (KeyboardInterrupt, SystemExit):
         pass
