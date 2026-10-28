@@ -29,3 +29,12 @@ jobs:
 
       - name: Tests
         run: pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build -t registration-bot:test .
