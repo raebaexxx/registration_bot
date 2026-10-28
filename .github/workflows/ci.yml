@@ -38,3 +38,6 @@ jobs:
 
       - name: Build image
         run: docker build -t registration-bot:test .
+
+      - name: Run migrations in image
+        run: docker run --rm registration-bot:test alembic upgrade head
