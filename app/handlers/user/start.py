@@ -50,7 +50,8 @@ async def cmd_start(
 
 
 @router.message(Command("help"))
-async def cmd_help(message: Message, user: User) -> None:
+async def cmd_help(message: Message, user: User, state: FSMContext) -> None:
+    await state.clear()
     await answer_message(message, texts.help_text(), user_keyboards.main_menu(is_admin(user)))
 
 
@@ -71,12 +72,14 @@ async def cb_main(callback: CallbackQuery, user: User, state: FSMContext) -> Non
 
 
 @router.callback_query(F.data == cb.HELP)
-async def cb_help(callback: CallbackQuery, user: User) -> None:
+async def cb_help(callback: CallbackQuery, user: User, state: FSMContext) -> None:
+    await state.clear()
     await edit_or_answer(callback, texts.help_text(), user_keyboards.main_menu(is_admin(user)))
 
 
 @router.callback_query(F.data == cb.GAMES)
-async def cb_games(callback: CallbackQuery) -> None:
+async def cb_games(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
     await edit_or_answer(callback, texts.categories_text(), user_keyboards.categories())
 
 

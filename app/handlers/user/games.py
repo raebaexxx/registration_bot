@@ -4,6 +4,7 @@ import math
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,7 +26,13 @@ PAGE_SIZE = 8
 
 
 @router.message(Command("my"))
-async def cmd_my(message: Message, user: User, session: AsyncSession) -> None:
+async def cmd_my(
+    message: Message,
+    user: User,
+    session: AsyncSession,
+    state: FSMContext,
+) -> None:
+    await state.clear()
     settings = get_settings()
     registrations = await registration_service.get_active_registrations(session, user.tg_id)
     await answer_message(
@@ -36,7 +43,13 @@ async def cmd_my(message: Message, user: User, session: AsyncSession) -> None:
 
 
 @router.callback_query(F.data == cb.MY)
-async def cb_my(callback: CallbackQuery, user: User, session: AsyncSession) -> None:
+async def cb_my(
+    callback: CallbackQuery,
+    user: User,
+    session: AsyncSession,
+    state: FSMContext,
+) -> None:
+    await state.clear()
     settings = get_settings()
     registrations = await registration_service.get_active_registrations(session, user.tg_id)
     await edit_or_answer(
@@ -47,7 +60,8 @@ async def cb_my(callback: CallbackQuery, user: User, session: AsyncSession) -> N
 
 
 @router.callback_query(F.data.startswith("cat:"))
-async def cb_category(callback: CallbackQuery, session: AsyncSession) -> None:
+async def cb_category(callback: CallbackQuery, session: AsyncSession, state: FSMContext) -> None:
+    await state.clear()
     settings = get_settings()
     parts = callback.data.split(":")
     if len(parts) < 2:
@@ -93,7 +107,13 @@ async def cb_category(callback: CallbackQuery, session: AsyncSession) -> None:
 
 
 @router.callback_query(F.data.startswith("game:"))
-async def cb_game(callback: CallbackQuery, user: User, session: AsyncSession) -> None:
+async def cb_game(
+    callback: CallbackQuery,
+    user: User,
+    session: AsyncSession,
+    state: FSMContext,
+) -> None:
+    await state.clear()
     parts = callback.data.split(":")
     if len(parts) != 2 or not parts[1].isdigit():
         await callback.answer("Игра не найдена.", show_alert=True)
