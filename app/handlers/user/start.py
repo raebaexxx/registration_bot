@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +19,13 @@ router = Router(name="user_start")
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, user: User, session: AsyncSession) -> None:
+async def cmd_start(
+    message: Message,
+    user: User,
+    session: AsyncSession,
+    state: FSMContext,
+) -> None:
+    await state.clear()
     payload = ""
     if message.text and len(message.text.split(maxsplit=1)) == 2:
         payload = message.text.split(maxsplit=1)[1].strip()
@@ -54,7 +61,10 @@ async def cmd_admin_denied(message: Message, user: User) -> None:
 
 
 @router.callback_query(F.data == cb.MAIN)
-async def cb_main(callback: CallbackQuery, user: User) -> None:
+async def cb_main(
+    callback: CallbackQuery, user: User, state: FSMContext
+) -> None:
+    await state.clear()
     await edit_or_answer(
         callback,
         texts.main_menu_text(user.first_name),
@@ -79,5 +89,9 @@ async def cb_noop(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("admin:"))
 async def cb_admin_denied(callback: CallbackQuery, user: User) -> None:
-    if not is_admin(user):
+    if is_admin(user):
+        await callback.answer(
+            "Кнопка устарела. Открой /admin заново.", show_alert=True
+        )
+    else:
         await callback.answer(texts.no_access_text(), show_alert=True)
