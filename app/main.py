@@ -48,6 +48,11 @@ async def main() -> None:
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
 
+    if not settings.admin_ids:
+        logger.warning("ADMIN_IDS пуст: админ-панель будет недоступна.")
+    if not settings.channel_id:
+        logger.warning("CHANNEL_ID не задан: анонсы в канал отправляться не будут.")
+
     engine = create_engine(settings)
     session_factory = create_session_factory(engine)
 
