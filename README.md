@@ -106,11 +106,12 @@ python3 -m venv .venv
 
 ### 6. Запуск на VPS через Docker
 
-На сервере:
+На сервере (если Docker ещё не установлен):
 
 ```bash
 sudo apt update
-sudo apt install -y docker.io docker-compose-plugin
+sudo apt install -y curl
+curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker $USER
 # перелогинься, чтобы применилась группа
 ```
@@ -122,6 +123,7 @@ git clone https://github.com/raebaexxx/registration_bot.git
 cd registration_bot
 cp .env.example .env
 nano .env
+chmod 600 .env
 ```
 
 Запуск:
