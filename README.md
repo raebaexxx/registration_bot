@@ -1,5 +1,7 @@
 # 🎲 Board Games Registration Bot
 
+[![CI](https://github.com/raebaexxx/registration_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/raebaexxx/registration_bot/actions/workflows/ci.yml)
+
 Telegram-бот для записи на настольные игры. Подходит для канала, где каждые выходные проходят взрослые и подростковые игры: «Мафия», «Бункер» и любые другие.
 
 Бот не привязан к конкретным играм. Админ сам создаёт встречу, добавляет игры, указывает время и количество мест. Игрок выбирает категорию, игру и записывается в один клик.
@@ -136,6 +138,12 @@ docker compose logs -f --tail=200
 ```bash
 git pull
 docker compose up -d --build
+```
+
+Или одной командой:
+
+```bash
+./scripts/deploy.sh
 ```
 
 ## Как пользоваться
