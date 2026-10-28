@@ -1,0 +1,12 @@
+services:
+  bot:
+    build: .
+    container_name: boardgames-bot
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./backups:/app/backups
+    command: sh -c "alembic upgrade head && python -m app.main"
