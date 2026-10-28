@@ -71,9 +71,7 @@ async def test_admin_keyboards(session: AsyncSession) -> None:
     )
 
     participants = admin_kb.participants(game.id, registrations, 0, 1)
-    assert participants.inline_keyboard[0][0].callback_data.startswith(
-        "admin:part:rmask:"
-    )
+    assert participants.inline_keyboard[0][0].callback_data.startswith("admin:part:rmask:")
 
     quick = admin_kb.date_quick(date(2026, 10, 31), date(2026, 11, 1))
     assert quick.inline_keyboard[0][0].callback_data == "admin:event:newdate:2026-10-31"

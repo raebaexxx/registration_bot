@@ -103,6 +103,15 @@ def event_card(event: Event, counts: dict[int, Counts]) -> InlineKeyboardMarkup:
                 )
             ]
         )
+    elif event.status == EventStatus.ARCHIVED.value:
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text="♻️ Вернуть из архива",
+                    callback_data=cb.admin_event_restore(event.id),
+                )
+            ]
+        )
 
     rows.append(
         [

@@ -63,6 +63,10 @@ def admin_event_archive(event_id: int) -> str:
     return f"admin:event:archive:{event_id}"
 
 
+def admin_event_restore(event_id: int) -> str:
+    return f"admin:event:restore:{event_id}"
+
+
 def admin_event_rename(event_id: int) -> str:
     return f"admin:event:rename:{event_id}"
 

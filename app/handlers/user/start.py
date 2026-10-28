@@ -61,9 +61,7 @@ async def cmd_admin_denied(message: Message, user: User) -> None:
 
 
 @router.callback_query(F.data == cb.MAIN)
-async def cb_main(
-    callback: CallbackQuery, user: User, state: FSMContext
-) -> None:
+async def cb_main(callback: CallbackQuery, user: User, state: FSMContext) -> None:
     await state.clear()
     await edit_or_answer(
         callback,
@@ -90,8 +88,6 @@ async def cb_noop(callback: CallbackQuery) -> None:
 @router.callback_query(F.data.startswith("admin:"))
 async def cb_admin_denied(callback: CallbackQuery, user: User) -> None:
     if is_admin(user):
-        await callback.answer(
-            "Кнопка устарела. Открой /admin заново.", show_alert=True
-        )
+        await callback.answer("Кнопка устарела. Открой /admin заново.", show_alert=True)
     else:
         await callback.answer(texts.no_access_text(), show_alert=True)

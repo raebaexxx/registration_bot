@@ -117,6 +117,18 @@ async def cb_event_archive(callback: CallbackQuery, session: AsyncSession) -> No
     await show_event_card(callback, session, event_id, get_settings().tz, answer=False)
 
 
+@router.callback_query(F.data.startswith("admin:event:restore:"))
+async def cb_event_restore(callback: CallbackQuery, session: AsyncSession) -> None:
+    parts = callback.data.split(":")
+    event_id = int(parts[3]) if len(parts) >= 4 and parts[3].isdigit() else 0
+    event = await event_service.restore_event(session, event_id)
+    if event is None:
+        await callback.answer("Встреча не найдена.", show_alert=True)
+        return
+    await callback.answer("Встреча возвращена из архива. Открой игры заново.")
+    await show_event_card(callback, session, event_id, get_settings().tz, answer=False)
+
+
 @router.callback_query(F.data.startswith("admin:event:rename:"))
 async def cb_event_rename(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession

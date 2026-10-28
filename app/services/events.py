@@ -80,6 +80,15 @@ async def archive_event(session: AsyncSession, event_id: int) -> Event | None:
     return event
 
 
+async def restore_event(session: AsyncSession, event_id: int) -> Event | None:
+    event = await get_event(session, event_id)
+    if event is None:
+        return None
+    event.status = EventStatus.PUBLISHED.value
+    await session.commit()
+    return event
+
+
 async def rename_event(session: AsyncSession, event_id: int, title: str) -> Event | None:
     event = await get_event(session, event_id)
     if event is None:

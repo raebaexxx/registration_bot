@@ -153,6 +153,8 @@ def my_registrations_text(registrations: list[Registration], tz: ZoneInfo) -> st
         status = REGISTRATION_STATUS_LABELS.get(registration.status, registration.status)
         lines.append(f"• <b>{esc(game.title)}</b>")
         lines.append(f"  {format_datetime(game.starts_at, tz)}")
+        if game.place:
+            lines.append(f"  📍 {esc(game.place)}")
         lines.append(f"  {status}")
         lines.append("")
     return "\n".join(lines).strip()
@@ -262,11 +264,18 @@ def participants_text(
 
 
 def participant_remove_confirm_text(registration: Registration) -> str:
+    if registration.status == RegistrationStatus.WAITLIST.value:
+        consequence = "Участник будет удалён из листа ожидания."
+    elif registration.status == RegistrationStatus.OFFERED.value:
+        consequence = "Предложение будет отменено, а место предложат следующему в очереди."
+    else:
+        consequence = "Место освободится, и бот предложит его первому из листа ожидания."
+
     return (
         "Удалить участника?\n\n"
         f"<b>{esc(registration.user.display_name)}</b>\n"
         f"Игра: <b>{esc(registration.game.title)}</b>\n\n"
-        "Место освободится, и бот предложит его первому из листа ожидания."
+        f"{consequence}"
     )
 
 
