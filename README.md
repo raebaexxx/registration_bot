@@ -116,6 +116,13 @@ sudo usermod -aG docker $USER
 # перелогинься, чтобы применилась группа
 ```
 
+Вариант из репозитория Ubuntu — обязательно вместе с плагином Compose:
+
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-v2
+```
+
 Клонируй репозиторий и настрой `.env`:
 
 ```bash
@@ -251,6 +258,8 @@ tests/                 # pytest
 ```
 
 ## Частые проблемы
+
+**`unknown shorthand flag: 'd' in -d`** — установлен Docker без Compose. Поставь плагин: `sudo apt install -y docker-compose-v2`, затем проверь `docker compose version`.
 
 **`BOT_TOKEN не задан`** — скопируй `.env.example` в `.env` и заполни токен.
 
