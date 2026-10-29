@@ -16,7 +16,11 @@ from app.db.models import User
 from app.handlers.user.common import show_game_callback
 from app.keyboards import user as user_keyboards
 from app.services import registrations as registration_service
-from app.services.notifier import send_offer
+from app.services.notifier import (
+    send_admin_cancellation,
+    send_admin_new_registration,
+    send_offer,
+)
 from app.services.registrations import CancelResult, RegisterResult
 from app.utils.telegram import answer_message, edit_or_answer
 from app.utils.time import format_datetime
@@ -122,7 +126,7 @@ async def cb_game(
 
 
 @router.callback_query(F.data.startswith("reg:"))
-async def cb_register(callback: CallbackQuery, user: User, session: AsyncSession) -> None:
+async def cb_register(callback: CallbackQuery, user: User, session: AsyncSession, bot: Bot) -> None:
     settings = get_settings()
     parts = callback.data.split(":")
     if len(parts) != 2 or not parts[1].isdigit():
@@ -151,6 +155,12 @@ async def cb_register(callback: CallbackQuery, user: User, session: AsyncSession
         RegisterResult.NOT_FOUND: "Игра не найдена.",
     }
     await callback.answer(messages.get(outcome.result, "Готово."))
+    if outcome.result in {
+        RegisterResult.REGISTERED,
+        RegisterResult.WAITLISTED,
+        RegisterResult.OFFER_ACCEPTED,
+    }:
+        await send_admin_new_registration(bot, settings, user, outcome)
     await show_game_callback(callback, session, game_id, user.tg_id, settings.tz, answer=False)
 
 
@@ -209,11 +219,14 @@ async def cb_cancel(callback: CallbackQuery, user: User, session: AsyncSession, 
         await send_offer(bot, outcome.offer, settings.tz, settings.waitlist_offer_minutes)
 
     await callback.answer("Запись отменена.")
+    await send_admin_cancellation(bot, settings, user, outcome)
     await show_game_callback(callback, session, game_id, user.tg_id, settings.tz, answer=False)
 
 
 @router.callback_query(F.data.startswith("offer:accept:"))
-async def cb_offer_accept(callback: CallbackQuery, user: User, session: AsyncSession) -> None:
+async def cb_offer_accept(
+    callback: CallbackQuery, user: User, session: AsyncSession, bot: Bot
+) -> None:
     settings = get_settings()
     parts = callback.data.split(":")
     if len(parts) != 3 or not parts[2].isdigit():
@@ -231,6 +244,11 @@ async def cb_offer_accept(callback: CallbackQuery, user: User, session: AsyncSes
         await callback.answer("Место уже занято, ты снова в листе ожидания.")
     else:
         await callback.answer("Не удалось занять место.", show_alert=True)
+    if outcome.result in {
+        RegisterResult.OFFER_ACCEPTED,
+        RegisterResult.REGISTERED,
+    }:
+        await send_admin_new_registration(bot, settings, user, outcome)
     await show_game_callback(callback, session, game_id, user.tg_id, settings.tz, answer=False)
 
 
@@ -253,4 +271,5 @@ async def cb_offer_decline(
     if outcome.offer is not None:
         await send_offer(bot, outcome.offer, settings.tz, settings.waitlist_offer_minutes)
     await callback.answer("Ты отказался от места.")
+    await send_admin_cancellation(bot, settings, user, outcome)
     await show_game_callback(callback, session, game_id, user.tg_id, settings.tz, answer=False)

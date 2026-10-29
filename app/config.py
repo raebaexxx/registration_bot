@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     )
     database_url: str = "sqlite+aiosqlite:///./data/bot.db"
     waitlist_offer_minutes: int = 120
+    admin_notifications: bool = True
     log_level: str = "INFO"
 
     @field_validator("admin_ids", mode="before")

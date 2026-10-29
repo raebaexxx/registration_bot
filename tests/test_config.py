@@ -29,3 +29,10 @@ def test_timezone_from_tz_env(monkeypatch) -> None:
 
     settings = Settings(_env_file=None)
     assert settings.tz.key == "Asia/Yekaterinburg"
+
+
+def test_admin_notifications_env(monkeypatch) -> None:
+    monkeypatch.setenv("ADMIN_NOTIFICATIONS", "false")
+
+    settings = Settings(_env_file=None)
+    assert settings.admin_notifications is False

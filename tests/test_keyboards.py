@@ -62,6 +62,11 @@ async def test_admin_keyboards(session: AsyncSession) -> None:
         for row in event_card.inline_keyboard
         for button in row
     )
+    assert any(
+        button.callback_data == f"admin:game:{game.id}"
+        for row in event_card.inline_keyboard
+        for button in row
+    )
 
     game_card = admin_kb.game_card(game, counts[game.id])
     assert any(

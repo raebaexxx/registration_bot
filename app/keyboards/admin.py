@@ -9,7 +9,7 @@ from app.constants import EventStatus, GameStatus
 from app.db.models import Event, Game, Registration
 from app.services.registrations import Counts
 from app.utils.text import truncate
-from app.utils.time import format_date_short
+from app.utils.time import format_date_short, format_time
 
 EVENT_STATUS_EMOJI = {
     EventStatus.DRAFT.value: "📝",
@@ -59,6 +59,25 @@ def events_list(events: list[Event], page: int, total_pages: int) -> InlineKeybo
 
 def event_card(event: Event, counts: dict[int, Counts]) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
+
+    for game in sorted(event.games, key=lambda item: item.starts_at):
+        game_counts = counts.get(game.id, Counts(capacity=game.capacity))
+        emoji = GAME_STATUS_EMOJI.get(game.status, "🎲")
+        label = (
+            f"{emoji} {game.title} · {format_time(game.starts_at)} · "
+            f"{game_counts.occupied}/{game_counts.capacity}"
+        )
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=truncate(label, 62),
+                    callback_data=cb.admin_game(game.id),
+                )
+            ]
+        )
+
+    if event.games:
+        rows.append([InlineKeyboardButton(text="──────────", callback_data=cb.NOOP)])
 
     if event.status != EventStatus.ARCHIVED.value:
         rows.append(

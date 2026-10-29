@@ -96,6 +96,7 @@ class CancelOutcome:
     registration: Registration | None = None
     counts: Counts | None = None
     offer: OfferOutcome | None = None
+    previous_status: str | None = None
 
 
 @dataclass
@@ -428,6 +429,7 @@ async def cancel_registration(
         if registration is None or registration.status == RegistrationStatus.CANCELLED.value:
             return CancelOutcome(CancelResult.NOT_FOUND, game=game)
 
+        previous_status = registration.status
         was_occupied = registration.status in {
             status.value for status in OCCUPIED_REGISTRATION_STATUSES
         }
@@ -447,6 +449,7 @@ async def cancel_registration(
             registration=registration,
             counts=counts,
             offer=offer,
+            previous_status=previous_status,
         )
 
 

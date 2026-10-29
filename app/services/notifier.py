@@ -6,8 +6,12 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramForbiddenError
 from aiogram.types import InlineKeyboardMarkup
 
-from app.db.models import Game, Registration
+from app.config import Settings
+from app.db.models import Game, Registration, User
 from app.services.notifications import (
+    admin_game_keyboard,
+    build_admin_cancellation_text,
+    build_admin_registration_text,
     build_game_cancelled_text,
     build_offer_expired_text,
     build_offer_text,
@@ -15,7 +19,12 @@ from app.services.notifications import (
     offer_keyboard,
     reminder_keyboard,
 )
-from app.services.registrations import OfferExpired, OfferOutcome
+from app.services.registrations import (
+    CancelOutcome,
+    OfferExpired,
+    OfferOutcome,
+    RegisterOutcome,
+)
 from app.services.reminders import Reminder
 
 logger = logging.getLogger(__name__)
@@ -79,3 +88,51 @@ async def send_game_cancelled(bot: Bot, game: Game, affected: list[Registration]
         ):
             sent += 1
     return sent
+
+
+async def _send_to_admins(
+    bot: Bot,
+    settings: Settings,
+    text: str,
+    keyboard: InlineKeyboardMarkup | None = None,
+) -> int:
+    if not settings.admin_notifications or not settings.admin_ids:
+        return 0
+
+    sent = 0
+    for admin_id in settings.admin_ids:
+        if await _send(bot, admin_id, text, keyboard):
+            sent += 1
+    return sent
+
+
+async def send_admin_new_registration(
+    bot: Bot, settings: Settings, user: User, outcome: RegisterOutcome
+) -> int:
+    if outcome.game is None:
+        return 0
+    text = build_admin_registration_text(user, outcome, settings.tz)
+    if not text:
+        return 0
+    return await _send_to_admins(
+        bot,
+        settings,
+        text,
+        admin_game_keyboard(outcome.game.id),
+    )
+
+
+async def send_admin_cancellation(
+    bot: Bot, settings: Settings, user: User, outcome: CancelOutcome
+) -> int:
+    if outcome.game is None:
+        return 0
+    text = build_admin_cancellation_text(user, outcome, settings.tz)
+    if not text:
+        return 0
+    return await _send_to_admins(
+        bot,
+        settings,
+        text,
+        admin_game_keyboard(outcome.game.id),
+    )
